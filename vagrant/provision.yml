@@ -1,0 +1,79 @@
+- name: Use UTF-8
+  hosts: vagrant
+  user: vagrant
+  sudo: yes
+  tasks:
+    - name: Make sure the system encoding is utf-8
+      template: src=templates/locale dest=/etc/default/locale owner=root group=root mode=644
+
+- name: Install packages via APT
+  hosts: vagrant
+  user: vagrant
+  sudo: yes
+  tasks:
+    - name: Install
+      apt: pkg={{ item }} update_cache=yes state=latest
+      with_items:
+        - python-pip
+        - libssl-dev
+        - zlib1g-dev
+        - libbz2-dev
+        - apache2-utils
+        - golang
+
+- name: Set up Python
+  hosts: vagrant
+  user: vagrant
+  sudo: yes
+  tasks:
+    - name: virtualenv
+      command: pip install virtualenvwrapper
+    - name: Replace setting file of bash
+      sudo: no
+      action: template src=templates/bashrc dest=/home/vagrant/.bashrc
+    - name: Pythonz
+      sudo: no
+      shell: |
+        if [ ! -s $HOME/.pythonz/etc/bashrc ]; then
+            curl -kL https://raw.github.com/saghul/pythonz/master/pythonz-install | bash
+        fi
+    - name: Python 3.4.2
+      sudo: no
+      shell: bash -c 'source /home/vagrant/.pythonz/etc/bashrc && pythonz install 3.4.2'
+    - name: virtualenv environment
+      sudo: no
+      shell: bash -c 'export WORKON_HOME=/home/vagrant/.virtualenvs && source /usr/local/bin/virtualenvwrapper.sh && mkvirtualenv cpython34 -p /home/vagrant/.pythonz/pythons/CPython-3.4.2/bin/python'
+    - name: pip install
+      ignore_errors: yes
+      sudo: no
+      shell: bash -c 'export WORKON_HOME=/home/vagrant/.virtualenvs && source /usr/local/bin/virtualenvwrapper.sh && workon cpython34 && pip install -r /srv/python/requirements.txt'
+    - name: Python 2.7.8
+      sudo: no
+      shell: bash -c 'source /home/vagrant/.pythonz/etc/bashrc && pythonz install 2.7.8'
+    - name: virtualenv environment
+      sudo: no
+      shell: bash -c 'export WORKON_HOME=/home/vagrant/.virtualenvs && source /usr/local/bin/virtualenvwrapper.sh && mkvirtualenv cpython27 -p /home/vagrant/.pythonz/pythons/CPython-2.7.8/bin/python'
+    - name: pip install
+      ignore_errors: yes
+      sudo: no
+      shell: bash -c 'export WORKON_HOME=/home/vagrant/.virtualenvs && source /usr/local/bin/virtualenvwrapper.sh && workon cpython27 && pip install -r /srv/python/requirements.txt'
+    - name: PyPy2 2.4.0
+      sudo: no
+      shell: bash -c 'source /home/vagrant/.pythonz/etc/bashrc && pythonz install -t pypy 2.4.0'
+    - name: virtualenv environment
+      sudo: no
+      shell: bash -c 'export WORKON_HOME=/home/vagrant/.virtualenvs && source /usr/local/bin/virtualenvwrapper.sh && mkvirtualenv pypy240 -p /home/vagrant/.pythonz/pythons/PyPy-2.4.0/bin/python'
+    - name: pip install
+      ignore_errors: yes
+      sudo: no
+      shell: bash -c 'export WORKON_HOME=/home/vagrant/.virtualenvs && source /usr/local/bin/virtualenvwrapper.sh && workon pypy240 && pip install -r /srv/python/requirements_pypy.txt'
+    - name: PyPy3 2.4.0
+      sudo: no
+      shell: bash -c 'source /home/vagrant/.pythonz/etc/bashrc && pythonz install -t pypy3 2.4.0'
+    - name: virtualenv environment
+      sudo: no
+      shell: bash -c 'export WORKON_HOME=/home/vagrant/.virtualenvs && source /usr/local/bin/virtualenvwrapper.sh && mkvirtualenv pypy3240 -p /home/vagrant/.pythonz/pythons/PyPy3-2.4.0/bin/pypy3'
+    - name: pip install
+      ignore_errors: yes
+      sudo: no
+      shell: bash -c 'export WORKON_HOME=/home/vagrant/.virtualenvs && source /usr/local/bin/virtualenvwrapper.sh && workon pypy3240 && pip install -r /srv/python/requirements_pypy.txt'
