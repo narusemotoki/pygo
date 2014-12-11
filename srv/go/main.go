@@ -19,6 +19,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	var rj request_json
 	decoder.Decode(&rj)
 	a, _ := json.Marshal(response_json{len(strings.Split(rj.Key, " "))})
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(a)
 }
 
